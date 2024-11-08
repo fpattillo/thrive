@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+'use client';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
-import { NumericTaskRow } from './types';
+import { NumericTask } from '../types/types';
 
 export const NumberModal = ({
   open,
@@ -21,7 +21,7 @@ export const NumberModal = ({
 }: {
   open: boolean;
   onClose: () => void;
-  row: NumericTaskRow;
+  row: NumericTask;
   onProgressChange: (rowId: number, newProgress: number) => void;
   onGoalChange: (rowId: number, newGoal: number) => void;
 }) => {
@@ -34,6 +34,7 @@ export const NumberModal = ({
   };
 
   const handleClose = () => {
+    console.log('handleClose', progress);
     onProgressChange(row.id, progress);
     onGoalChange(row.id, goal);
     onClose();
@@ -47,44 +48,40 @@ export const NumberModal = ({
       <DialogContent className='w-full max-w-md'>
         <DialogHeader>
           <DialogTitle>{row.name}</DialogTitle>
-          <DialogDescription>
-            <div className='flex items-center gap-2'>
-              <Progress
-                value={progress}
-                className={`flex-1 ${
-                  progress >= 0 && progress <= 33
-                    ? 'bg-[#A2708A]'
-                    : progress >= 34 && progress <= 66
-                      ? 'bg-[#BDA0BC]'
-                      : progress >= 67 && progress < 100
-                        ? 'bg-[#C3D2D5]'
-                        : 'bg-[#C1F7DC]'
-                }`}
-              />
-              <Input
-                type='number'
-                min={0}
-                max={goal}
-                value={progress}
-                onChange={handleProgressChange}
-                className='w-20 text-right'
-              />
-              <span>/ {goal}</span>
-            </div>
-          </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <div className='flex items-center gap-2'>
-            <span className='text-sm text-gray-500 dark:text-gray-400'>Goal:</span>
-            <Input
-              type='number'
-              min={1}
-              value={goal}
-              onChange={(e) => setGoal(parseInt(e.target.value))}
-              className='w-20 text-right'
-            />
-          </div>
-        </DialogFooter>
+        <div className='flex items-center gap-2'>
+          <Progress
+            value={progress}
+            className={`flex-1 ${
+              progress >= 0 && progress <= 33
+                ? 'bg-[#A2708A]'
+                : progress >= 34 && progress <= 66
+                  ? 'bg-[#BDA0BC]'
+                  : progress >= 67 && progress < 100
+                    ? 'bg-[#C3D2D5]'
+                    : 'bg-[#C1F7DC]'
+            }`}
+          />
+          <Input
+            type='number'
+            min={0}
+            max={goal}
+            value={progress}
+            onChange={handleProgressChange}
+            className='w-20 text-right'
+          />
+          <span>/ {goal}</span>
+        </div>
+        <div className='flex items-center gap-2'>
+          <span className='text-sm text-gray-500 dark:text-gray-400'>Goal:</span>
+          <Input
+            type='number'
+            min={1}
+            value={goal}
+            onChange={(e) => setGoal(parseInt(e.target.value))}
+            className='w-20 text-right'
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

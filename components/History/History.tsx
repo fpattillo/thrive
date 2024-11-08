@@ -6,13 +6,19 @@
 'use client';
 
 import { HistoryCard } from './HistoryCard';
-import { Period } from './types';
+import { useThriveContext } from '@/app/ThriveContextProvider';
 
-export default function History({ previousPeriods }: { previousPeriods: Period[] }) {
+export default function History() {
+  const { previousPeriods, setSelectedPeriod } = useThriveContext();
+  // TODO: add onClick to navigate to period details
   return (
     <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6'>
       {previousPeriods.map((period, index) => (
-        <HistoryCard period={period} />
+        <HistoryCard
+          key={`history-card-${index}`}
+          period={period}
+          handleClick={() => setSelectedPeriod(period)}
+        />
       ))}
     </div>
   );

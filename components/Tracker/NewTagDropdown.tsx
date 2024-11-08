@@ -1,3 +1,4 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,14 +11,14 @@ import {
 import { Input } from '@/components/ui/input';
 import PlusIcon from '../icons/PlusIcon';
 import { useState } from 'react';
-import { TaskRow, TaskTag } from './types';
 import ColorPicker from '../utils/ColorPicker';
+import { Task, TaskTag } from '../types/types';
 
 export const NewTagDropdown = ({
   rowInfo,
   onAdd,
 }: {
-  rowInfo: TaskRow;
+  rowInfo: Task;
   onAdd: (rowId: number, newTags: TaskTag[]) => void;
 }) => {
   const [newTagName, setNewTagName] = useState('');
@@ -25,7 +26,7 @@ export const NewTagDropdown = ({
 
   const handleAddTag = () => {
     if (newTagName === '') return;
-    onAdd(rowInfo.id, [...rowInfo.tags, { text: newTagName, color: newTagColor }]);
+    onAdd(rowInfo.id, [...rowInfo.tags, { text: newTagName, color_code: newTagColor }]);
     setNewTagName('');
     setNewTagColor('#A2708A');
   };

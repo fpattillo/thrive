@@ -1,17 +1,11 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { ChecklistItem, ChecklistTaskRow } from './types';
 import { CheckedState } from '@radix-ui/react-checkbox';
+import { ChecklistItem, ChecklistTask } from '../types/types';
 
 export const ChecklistModal = ({
   open,
@@ -21,10 +15,10 @@ export const ChecklistModal = ({
 }: {
   open: boolean;
   onClose: () => void;
-  row: ChecklistTaskRow;
+  row: ChecklistTask;
   onCheck: (rowId: number, newChecklist: ChecklistItem[]) => void;
 }) => {
-  const [checklist, setChecklist] = useState(row.checklist);
+  const [checklist, setChecklist] = useState(row.subtasks);
   const [newSubtaskName, setNewSubtaskName] = useState('');
 
   const handleCheck = (checked: CheckedState, itemId: number) => {
@@ -48,7 +42,7 @@ export const ChecklistModal = ({
       ...checklist,
       {
         id: checklist.length + 1,
-        text: newSubtaskName,
+        name: newSubtaskName,
         completed: false,
       },
     ];
@@ -69,49 +63,45 @@ export const ChecklistModal = ({
       <DialogContent className='w-full max-w-md'>
         <DialogHeader>
           <DialogTitle>{row.name}</DialogTitle>
-          <DialogDescription>
-            <div className='grid gap-2'>
-              {checklist.map((item) => (
-                <div
-                  key={item.id}
-                  className='flex items-center gap-2'
-                >
-                  <Checkbox
-                    id={`checklist-${item.id}`}
-                    checked={item.completed}
-                    onCheckedChange={(checked) => handleCheck(checked, item.id)}
-                  />
-                  <label
-                    htmlFor={`checklist-${item.id}`}
-                    className={`text-sm ${
-                      item.completed
-                        ? 'line-through text-gray-400 dark:text-gray-600'
-                        : 'text-gray-900 dark:text-gray-50'
-                    }`}
-                  >
-                    {item.text}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <div className='flex items-center gap-2'>
-            <Input
-              type='text'
-              placeholder='New subtask'
-              value={newSubtaskName}
-              onChange={(e) => setNewSubtaskName(e.target.value)}
-            />
-            <Button
-              onClick={handleAddSubtask}
-              className='bg-[#824670] text-white dark:bg-[#824670] dark:text-white hover:bg-[#824670]/90 dark:hover:bg-[#824670]/90 transition-colors'
+        <div className='grid gap-2'>
+          {checklist.map((item) => (
+            <div
+              key={item.id}
+              className='flex items-center gap-2'
             >
-              Save
-            </Button>
-          </div>
-        </DialogFooter>
+              <Checkbox
+                id={`checklist-${item.id}`}
+                checked={item.completed}
+                onCheckedChange={(checked) => handleCheck(checked, item.id)}
+              />
+              <label
+                htmlFor={`checklist-${item.id}`}
+                className={`text-sm ${
+                  item.completed
+                    ? 'line-through text-gray-400 dark:text-gray-600'
+                    : 'text-gray-900 dark:text-gray-50'
+                }`}
+              >
+                {item.name}
+              </label>
+            </div>
+          ))}
+        </div>
+        <div className='flex items-center gap-2'>
+          <Input
+            type='text'
+            placeholder='New subtask'
+            value={newSubtaskName}
+            onChange={(e) => setNewSubtaskName(e.target.value)}
+          />
+          <Button
+            onClick={handleAddSubtask}
+            className='bg-[#824670] text-white dark:bg-[#824670] dark:text-white hover:bg-[#824670]/90 dark:hover:bg-[#824670]/90 transition-colors'
+          >
+            Save
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -1,11 +1,21 @@
+'use client';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
-import { Period } from './types';
+import { Period } from '../types/types';
 
-export const HistoryCard = ({ period }: { period: Period }) => {
+export const HistoryCard = ({
+  period,
+  handleClick,
+}: {
+  period: Period;
+  handleClick: () => void;
+}) => {
   // TODO: make a static radial progress bar with the completion percentage
   return (
-    <Card className='w-full max-w-sm hover:bg-gray-50'>
-      <CardContent className='flex flex-col items-center justify-center gap-4 p-8'>
+    <Card
+      className='w-full max-w-sm hover:bg-gray-50'
+      onClick={handleClick}
+    >
+      <CardContent className='flex flex-col items-center justify-center gap-4 p-4'>
         <div className='relative w-full max-w-[200px] aspect-square'>
           <div className='absolute inset-0 flex items-center justify-center'>
             <span className='text-4xl font-bold'>

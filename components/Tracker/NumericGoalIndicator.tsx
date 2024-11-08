@@ -1,3 +1,4 @@
+'use client';
 import { Progress } from '@/components/ui/progress';
 
 export const NumericGoalIndicator = ({ progressValue }: { progressValue: number }) => {

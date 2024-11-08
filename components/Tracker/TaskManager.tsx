@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -23,95 +22,62 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
-import { ChecklistItem, RowProps, TaskRow, TaskTag } from './types';
+import { useEffect, useState } from 'react';
 import { Row } from './TaskRow';
 import CheckIcon from '../icons/CheckIcon';
-import { Period } from '../History/types';
+import { Period } from '../types/types';
+import { useTrackerContext } from './TrackerContextProvider';
+import { useThriveContext } from '@/app/ThriveContextProvider';
 
-const initialRows: TaskRow[] = [
-  {
-    id: 1,
-    name: 'Task 1',
-    progress: 75,
-    tags: [
-      { text: 'High Priority', color: '#A2708A' },
-      { text: 'Urgent', color: '#BDA0BC' },
-    ],
-    type: 'numeric',
-    goal: 100,
-  },
-  {
-    id: 2,
-    name: 'Task 2',
-    tags: [{ text: 'Low Priority', color: '#C3D2D5' }],
-    type: 'checklist',
-    checklist: [
-      { id: 1, text: 'Subtask 1', completed: true },
-      { id: 2, text: 'Subtask 2', completed: false },
-      { id: 3, text: 'Subtask 3', completed: false },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Task 3',
-    progress: 90,
-    tags: [
-      { text: 'Ongoing', color: '#C1F7DC' },
-      { text: 'Important', color: '#A2708A' },
-    ],
-    type: 'numeric',
-    goal: 100,
-  },
-];
-
-export default function Tracker({ addToHistory }: { addToHistory: (period: Period) => void }) {
-  const [rows, setRows] = useState<TaskRow[]>(initialRows);
+export default function TaskManager() {
+  const { selectedPeriod: period, mostRecentPeriod, handleAddPeriod } = useThriveContext();
+  const {
+    rows,
+    setRows,
+    handleChecklistChange,
+    handleGoalChange,
+    handleProgressChange,
+    handleTagChange,
+  } = useTrackerContext();
   const [newRowName, setNewRowName] = useState('');
   const [newRowType, setNewRowType] = useState<'numeric' | 'checklist'>('numeric');
   const [showEndPeriodConfirmationModal, setShowEndPeriodConfirmationModal] = useState(false);
   const [showResetConfirmationModal, setShowResetConfirmationModal] = useState(false);
 
+  useEffect(() => {
+    if (period) setRows(period.tasks);
+  }, [period, setRows]);
+
+  useEffect(() => {
+    if (mostRecentPeriod?.id === period?.id && rows.length > 0) mostRecentPeriod!.tasks = rows;
+  }, [mostRecentPeriod, period, rows]);
+
   const handleAddRow = () => {
     if (newRowName.trim() !== '') {
-      setRows((prevRows) => {
-        const basicRowInfo: RowProps = {
-          id: prevRows.length + 1,
+      setRows([
+        ...rows,
+        {
+          id: rows.length + 1,
           name: newRowName,
+          progress: 0,
           tags: [],
-        };
-        const newRow: TaskRow =
-          newRowType === 'numeric'
-            ? {
-                ...basicRowInfo,
-                type: 'numeric',
-                goal: 100,
-                progress: 0,
-              }
-            : {
-                ...basicRowInfo,
-                type: 'checklist',
-                checklist: [],
-              };
-
-        return [...prevRows, newRow];
-      });
+          variant: newRowType,
+          goal: newRowType === 'numeric' ? 100 : 0,
+          subtasks:
+            newRowType === 'checklist'
+              ? [
+                  { id: 1, name: 'Subtask 1', completed: false },
+                  { id: 2, name: 'Subtask 2', completed: false },
+                  { id: 3, name: 'Subtask 3', completed: false },
+                ]
+              : [],
+        },
+      ]);
       setNewRowName('');
       setNewRowType('numeric');
     }
   };
-  const handleTagChange = (rowId: number, newTags: TaskTag[]) => {
-    setRows(rows.map((row) => (row.id === rowId ? { ...row, tags: newTags } : row)));
-  };
-  const handleProgressChange = (rowId: number, newProgress: number) => {
-    setRows(rows.map((row) => (row.id === rowId ? { ...row, progress: newProgress } : row)));
-  };
-  const handleChecklistChange = (rowId: number, newChecklist: ChecklistItem[]) => {
-    setRows(rows.map((row) => (row.id === rowId ? { ...row, checklist: newChecklist } : row)));
-  };
-  const handleGoalChange = (rowId: number, newGoal: number) => {
-    setRows(rows.map((row) => (row.id === rowId ? { ...row, goal: newGoal } : row)));
-  };
+
   const handleResetRows = () => {
     setShowResetConfirmationModal(true);
   };
@@ -121,11 +87,11 @@ export default function Tracker({ addToHistory }: { addToHistory: (period: Perio
         ...row,
         progress: 0,
         checklist:
-          row.type === 'checklist'
+          row.variant === 'checklist'
             ? [
-                { id: 1, text: 'Subtask 1', completed: false },
-                { id: 2, text: 'Subtask 2', completed: false },
-                { id: 3, text: 'Subtask 3', completed: false },
+                { id: 1, name: 'Subtask 1', completed: false },
+                { id: 2, name: 'Subtask 2', completed: false },
+                { id: 3, name: 'Subtask 3', completed: false },
               ]
             : [],
       })),
@@ -136,24 +102,30 @@ export default function Tracker({ addToHistory }: { addToHistory: (period: Perio
     setShowResetConfirmationModal(false);
   };
   const handleEndPeriod = () => {
-    const period: Period = {
+    const finishedPeriod: Period = {
       id: 1,
       name: 'September 2021',
-      start: new Date(2021, 8, 1),
-      end: new Date(),
+      duration: 7,
       // Calculate average progress, for numeric consider progress, for checklist consider percentage of completion of all subtasks
-      completion: Math.floor(
-        (rows.reduce((acc, row) => acc + (row.type === 'numeric' ? row.progress : 0), 0) /
-          rows.reduce(
-            (acc, row) => acc + (row.type === 'numeric' ? row.goal : row.checklist.length),
-            0,
-          )) *
-          100,
-      ),
-      // TODO: add rows to get more detailed information
+      completion:
+        Math.round(
+          (rows.reduce((acc, row) => {
+            if (row.variant === 'numeric') {
+              return acc + row.progress;
+            }
+            return (
+              acc +
+              (row.subtasks.filter((subtask) => subtask.completed).length / row.subtasks.length) *
+                100
+            );
+          }, 0) /
+            rows.length) *
+            10,
+        ) / 10,
+      tasks: rows,
     };
-    addToHistory(period);
-    setRows(initialRows);
+    handleAddPeriod(finishedPeriod);
+    if (period) setRows(period.tasks);
     setShowEndPeriodConfirmationModal(false);
   };
   return (
@@ -220,19 +192,21 @@ export default function Tracker({ addToHistory }: { addToHistory: (period: Perio
               Add Task
             </Button>
           </div>
-          <Button
-            onClick={handleResetRows}
-            className='bg-[#824670] text-white dark:bg-[#824670] dark:text-white hover:bg-[#824670]/90 dark:hover:bg-[#824670]/90 transition-colors'
-          >
-            Reset Tasks
-          </Button>
-          <Button
-            onClick={() => setShowEndPeriodConfirmationModal(true)}
-            className='bg-[#74DDAA] text-white dark:bg-[#74DDAA] dark:text-white hover:bg-[#74DDAA]/90 dark:hover:bg-[#74DDAA]/90 transition-colors'
-          >
-            End period
-            <CheckIcon className='ml-3 w-4 h-4' />
-          </Button>
+          <div className='flex items-center gap-2'>
+            <Button
+              onClick={handleResetRows}
+              className='bg-[#824670] text-white dark:bg-[#824670] dark:text-white hover:bg-[#824670]/90 dark:hover:bg-[#824670]/90 transition-colors'
+            >
+              Reset Tasks
+            </Button>
+            <Button
+              onClick={() => setShowEndPeriodConfirmationModal(true)}
+              className='bg-[#74DDAA] text-white dark:bg-[#74DDAA] dark:text-white hover:bg-[#74DDAA]/90 dark:hover:bg-[#74DDAA]/90 transition-colors'
+            >
+              End period
+              <CheckIcon className='ml-3 w-4 h-4' />
+            </Button>
+          </div>
         </div>
       </div>
       <Dialog
