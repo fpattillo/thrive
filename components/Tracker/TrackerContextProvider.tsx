@@ -10,6 +10,10 @@ interface TrackerContextType {
   handleGoalChange: (rowId: number, newGoal: number) => void;
 }
 
+interface TrackerProviderProps {
+  children: ReactNode;
+}
+
 const TrackerContext = createContext<TrackerContextType>({
   rows: [],
   setRows: () => {},
