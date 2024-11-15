@@ -10,6 +10,8 @@ interface TrackerContextType {
   handleGoalChange: (rowId: number, newGoal: number) => void;
 }
 
+// cambio
+
 const TrackerContext = createContext<TrackerContextType>({
   rows: [],
   setRows: () => {},
