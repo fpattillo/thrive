@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useContext, useState } from 'react';
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { ChecklistItem, Task, TaskTag } from '../types/types';
 
 interface TrackerContextType {
@@ -43,6 +43,10 @@ export const TrackerProvider = ({ children }: { children: ReactNode }) => {
   const handleGoalChange = (rowId: number, newGoal: number) => {
     setRows(rows.map((row) => (row.id === rowId ? { ...row, goal: newGoal } : row)));
   };
+
+  useEffect(() => {
+    console.log('rows', rows);
+  }, [rows]);
 
   const trackerValue = {
     rows,
